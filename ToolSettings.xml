@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ToolSettings>
+  <ValidComponents>
+    <Component>DemandPrefab</Component>
+    <Component>EconomyPrefab</Component>
+    <Component>ResourcePrefab</Component>
+    <Component>HouseholdPrefab</Component>
+    <Component>Workplace</Component>
+    <Component>ExtractorCompany</Component>
+    <Component>ProcessingCompany</Component>
+    <Component>BuildingProperties</Component>
+  </ValidComponents>
+  <Prefab name="PostSortingFacility01">
+		<Component name="PostFacility">
+			<Field name="m_SortingRate" valueInt="100" />
+			<Field name="m_PostTruckCapacity" valueInt="100" />
+			<Field name="m_SomeRef" value="other_name" />
+		</Component>
+    <Component name="Workplace">
+      <Field name="m_EveningShiftProbability" valueFloat="0.75" />
+      <Field name="m_Workplaces" valueInt="50" />
+      <Field name="m_TextField" value="workPost" />
+    </Component>
+  </Prefab>
+	<Prefab name="School">
+		<Component name="Workplace">
+			<Field name="m_EveningShiftProbability" valueFloat="0.75" />
+			<Field name="m_Workplaces" valueInt="50" />
+			<Field name="m_TextField" value="workSchool" />
+		</Component>
+    <Component name="BuildingProperties">
+      <Field name="m_ResidentialProperties" valueInt="200" />
+      <Field name="m_SpaceMultiplier" value="5.5" />
+    </Component>
+  </Prefab>
+	<Prefab name="Residential">
+		<Component name="BuildingProperties">
+			<Field name="m_ResidentialProperties" valueInt="200" />
+			<Field name="m_SpaceMultiplier" value="5.5" />
+		</Component>
+	</Prefab>
+</ToolSettings>
