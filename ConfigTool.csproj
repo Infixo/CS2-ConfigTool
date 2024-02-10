@@ -57,12 +57,9 @@
 	<ItemGroup>
 	  <Compile Remove="ConfigToolXml.cs" />
 	  <Compile Remove="Patches.cs" />
-	  <Compile Remove="Prefabs.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <None Include="ConfigToolXml.cs" />
 	  <None Include="Patches.cs" />
-	  <None Include="Prefabs.cs" />
 	</ItemGroup>
 
 	<!--

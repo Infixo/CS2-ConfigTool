@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
 using Game.Prefabs;
 using Unity.Entities;
@@ -9,18 +10,89 @@ namespace ConfigTool;
 [HarmonyPatch(typeof(Game.Prefabs.PrefabSystem), "AddPrefab")]
 public static class PrefabSystem_AddPrefab_Patches
 {
-    [HarmonyPrefix]
-    public static bool Resources_Prefix(object __instance, PrefabBase prefab)
+    public static void DumpFields(PrefabBase prefab, ComponentBase component)
     {
-        return true; // DISABLED
-        // types: BuildingPrefab, RenderPrefab, StaticObjectPrefab, EconomyPrefab, ZonePrefab, etc.
-        if (prefab.GetType().Name == "ResourcePrefab")
+        string className = component.GetType().Name;
+        Plugin.Log($"{prefab.name}.{component.name}.CLASS: {className}");
+
+        object obj = (object)component;
+        Type type = obj.GetType();
+        FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
+
+        foreach (FieldInfo field in fields)
         {
-            ResourcePrefab res = (ResourcePrefab)prefab;
-            Plugin.Log($"{prefab.name}: {res.m_Resource} price {res.m_InitialPrice} {res.m_Weight} " +
-                $"flags {res.m_IsProduceable} {res.m_IsTradable} {res.m_IsMaterial} {res.m_IsLeisure} " +
-                $"base {res.m_BaseConsumption} car {res.m_CarConsumption} wealth {res.m_WealthModifier} " +
-                $"weights {res.m_ChildWeight} {res.m_TeenWeight} {res.m_AdultWeight} {res.m_ElderlyWeight} ");
+            // field components: System.Collections.Generic.List`1[Game.Prefabs.ComponentBase]
+            if (field.Name != "isDirty" && field.Name != "active")
+            {
+                object value = field.GetValue(obj);
+                Plugin.Log($"{prefab.name}.{component.name}.{field.Name}: {value}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Configures a specific component withing a specific prefab according to config data.
+    /// </summary>
+    /// <param name="prefab"></param>
+    /// <param name="prefabConfig"></param>
+    /// <param name="comp"></param>
+    /// <param name="compConfig"></param>
+    private static void ConfigureComponent(PrefabBase prefab, PrefabXml prefabConfig, ComponentBase component, ComponentXml compConfig)
+    {
+        Type compType = component.GetType();
+        Plugin.Log($"Configuring component {prefab.name}.{compType.Name}");
+        foreach (FieldXml fieldConfig in compConfig.Fields)
+        {
+            // Get the FieldInfo object for the field with the given name
+            FieldInfo field = compType.GetField(fieldConfig.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (field != null)
+            {
+                Plugin.Log($"... {field.Name} ({field.FieldType}) => {fieldConfig}");
+                if (field.FieldType == typeof(float))
+                {
+                    field.SetValue(component, fieldConfig.ValueFloat);
+                }
+                else
+                {
+                    field.SetValue(component, fieldConfig.ValueInt);
+                }
+            }
+            else
+            {
+                Plugin.Log($"Warning! Field {fieldConfig.Name} not found in component {compType.Name}.");
+            }
+        }
+        DumpFields(prefab, component); // debug
+    }
+
+    /// <summary>
+    /// Configures a specific prefab according to the config data.
+    /// </summary>
+    /// <param name="prefab"></param>
+    /// <param name="prefabConfig"></param>
+    private static void ConfigurePrefab(PrefabBase prefab, PrefabXml prefabConfig)
+    {
+        Plugin.Log($"Configuring prefab {prefab.name}");
+        // iterate through components and see which ones need to be changed
+        foreach (ComponentBase component in prefab.components)
+        {
+            string compName = component.GetType().Name;
+            if (ConfigToolXmlReader.Settings.IsComponentValid(compName) && prefabConfig.TryGetComponent(compName, out ComponentXml compConfig))
+            {
+                Plugin.Log($"{prefab.name}.{compName}: valid");
+                ConfigureComponent(prefab, prefabConfig, component, compConfig);
+            }
+            else
+                Plugin.Log($"{prefab.name}.{compName}: SKIP");
+        }
+    }
+
+    [HarmonyPrefix]
+    public static bool PrefabConfig_Prefix(object __instance, PrefabBase prefab)
+    {
+        if (ConfigToolXmlReader.Settings.TryGetPrefab(prefab.name, out PrefabXml prefabConfig))
+        {
+            ConfigurePrefab(prefab, prefabConfig);
         }
         return true;
     }
@@ -145,6 +217,7 @@ public static class PrefabSystem_AddPrefab_Patches
     [HarmonyPrefix]
     public static bool Companies_Prefix(PrefabBase prefab)
     {
+        return true; // DISABLE
         if (prefab.GetType().Name == "CompanyPrefab")
         {
             // Component ProcessingCompany => m_MaxWorkersPerCell
@@ -172,7 +245,7 @@ public static class PrefabSystem_AddPrefab_Patches
         return true;
     }
 
-    /*
+    
     [HarmonyPrefix]
     public static bool Buildings_Prefix(object __instance, PrefabBase prefab)
     {
@@ -202,7 +275,7 @@ public static class PrefabSystem_AddPrefab_Patches
         
         return true;
     }
-    */
+    
 }
 
 /*

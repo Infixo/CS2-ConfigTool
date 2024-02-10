@@ -25,6 +25,18 @@ public class ToolSettingsXml
 
     [XmlElement("Prefab")]
     public List<PrefabXml> Prefabs { get; set; }
+
+    public bool TryGetPrefab(string name, out PrefabXml prefab)
+    {
+        prefab = default(PrefabXml);
+        foreach (var item in Prefabs)
+            if (item.Name == name)
+            {
+                prefab = item;
+                return true;
+            }
+        return false;
+    }
 }
 
 public class PrefabXml
@@ -46,6 +58,18 @@ public class PrefabXml
         foreach (ComponentXml component in Components)
             component.DumpToLog();
     }
+
+    internal bool TryGetComponent(string name, out ComponentXml component)
+    {
+        component = default(ComponentXml);
+        foreach (var item in Components)
+            if (item.Name == name)
+            {
+                component = item;
+                return true;
+            }
+        return false;
+    }
 }
 
 public class ComponentXml
@@ -61,11 +85,24 @@ public class ComponentXml
     {
         return $"ComponentXml: {Name}";
     }
+
     public void DumpToLog()
     {
         Plugin.Log(ToString());
         foreach (FieldXml field in Fields)
             Plugin.Log(field.ToString());
+    }
+
+    internal bool TryGetField(string name, out FieldXml field)
+    {
+        field = default(FieldXml);
+        foreach (var item in Fields)
+            if (item.Name == name)
+            {
+                field = item;
+                return true;
+            }
+        return false;
     }
 }
 
