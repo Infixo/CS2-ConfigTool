@@ -77,7 +77,7 @@ public static class PrefabSystem_AddPrefab_Patches
         foreach (ComponentBase component in prefab.components)
         {
             string compName = component.GetType().Name;
-            if (ConfigToolXmlReader.Settings.IsComponentValid(compName) && prefabConfig.TryGetComponent(compName, out ComponentXml compConfig))
+            if (ConfigToolXml.Settings.IsComponentValid(compName) && prefabConfig.TryGetComponent(compName, out ComponentXml compConfig))
             {
                 Plugin.Log($"{prefab.name}.{compName}: valid");
                 ConfigureComponent(prefab, prefabConfig, component, compConfig);
@@ -90,7 +90,7 @@ public static class PrefabSystem_AddPrefab_Patches
     [HarmonyPrefix]
     public static bool PrefabConfig_Prefix(object __instance, PrefabBase prefab)
     {
-        if (ConfigToolXmlReader.Settings.TryGetPrefab(prefab.name, out PrefabXml prefabConfig))
+        if (ConfigToolXml.Settings.TryGetPrefab(prefab.name, out PrefabXml prefabConfig))
         {
             ConfigurePrefab(prefab, prefabConfig);
         }
@@ -324,6 +324,36 @@ public static class ProcessingCompany_Patches
 }
 */
 
+[HarmonyPatch]
+public static class ConfigTool_Patches
+{
+    // Part 1: This is called 1035 times
+    /*
+    [HarmonyPatch(typeof(Game.Prefabs.AssetCollection), "AddPrefabsTo")]
+    [HarmonyPostfix]
+    public static void AddPrefabsTo_Postfix()
+    {
+        Plugin.Log("**************************** Game.Prefabs.AssetCollection.AddPrefabsTo");
+    }
+    */
+
+    // Part 2: This is called 1 time
+    [HarmonyPatch(typeof(Game.SceneFlow.GameManager), "LoadPrefabs")]
+    [HarmonyPostfix]
+    public static void LoadPrefabs_Postfix()
+    {
+        Plugin.Log("**************************** Game.SceneFlow.GameManager.LoadPrefabs");
+        ConfigToolXml.SaveSettings();
+    }
+
+    // Part 3: This is called 1 time
+    [HarmonyPatch(typeof(Game.Prefabs.PrefabInitializeSystem), "OnUpdate")]
+    [HarmonyPostfix]
+    public static void OnUpdate_Postfix()
+    {
+        Plugin.Log("**************************** Game.Prefabs.PrefabInitializeSystem.OnUpdate");
+    }
+}
 /*
 [HarmonyPatch]
 public static class PrefabInitializeSystem_Patches

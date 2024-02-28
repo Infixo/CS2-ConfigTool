@@ -161,11 +161,14 @@ public class FieldXml
 }
 
 
-public static class ConfigToolXmlReader
+public static class ConfigToolXml
 {
     private static readonly string _settingsFileName = "ToolSettings.xml";
-    //private static readonly string assemblyPath = Assembly.GetExecutingAssembly().Location;
-    private static readonly string _settingsFile = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), _settingsFileName); // TODO: change to a CO framework method
+    private static readonly string _assemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+    private static readonly string _settingsFile = Path.Combine(_assemblyPath, _settingsFileName); // TODO: change to a CO framework method
+
+    private static readonly string _dumpFileName = "DumpSettings.xml";
+    private static readonly string _dumpFile = Path.Combine(_assemblyPath, _dumpFileName); // TODO: change to a CO framework method
 
     private static ToolSettingsXml _settings = null;
     public static ToolSettingsXml Settings { get { return _settings; } }
@@ -204,6 +207,23 @@ public static class ConfigToolXmlReader
             //Plugin.Log($"ERROR: Cannot load settings, exception {e.Message}");
             //_settings = null;
         //}
+    }
+
+    public static void SaveSettings()
+    {
+        try
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(ToolSettingsXml));
+            using (FileStream fs = new FileStream(_dumpFile, FileMode.Create))
+            {
+                serializer.Serialize(fs, Settings);
+            }
+            Plugin.Log($"Settings dumped to file {_dumpFile}");
+        }
+        catch (Exception e)
+        {
+            Plugin.Log($"ERROR: Cannot dump settings, exception {e.Message}");
+        }
     }
 }
 

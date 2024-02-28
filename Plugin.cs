@@ -67,6 +67,6 @@ public class Plugin : BaseUnityPlugin
         }
 
         // READ CONFIG DATA
-        ConfigToolXmlReader.LoadSettings();
+        ConfigToolXml.LoadSettings();
     }
 }
